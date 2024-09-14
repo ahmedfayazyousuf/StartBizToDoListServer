@@ -1,8 +1,10 @@
-const express = require('express');
-const cors = require('cors');
-const http = require('http');
-const { Server } = require('socket.io');
-const { v4: uuidv4 } = require('uuid');
+import AdminJS from 'adminjs';
+import AdminJSExpress from '@adminjs/express';
+import express from 'express';
+import cors from 'cors';
+import http from 'http';
+import { Server } from 'socket.io';
+import { v4 as uuidv4 } from 'uuid';
 
 const app = express();
 app.use(express.json());
@@ -28,6 +30,17 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// AdminJS setup
+const admin = new AdminJS({
+  // Add your AdminJS configuration here
+  resources: [], // Add your resources here
+  rootPath: '/admin',
+});
+
+const adminRouter = AdminJSExpress.buildRouter(admin);
+app.use(admin.options.rootPath, adminRouter);
+
+// WebSocket setup
 let tasks = [];
 
 const server = http.createServer(app);
@@ -47,6 +60,7 @@ io.on('connection', (socket) => {
   });
 });
 
+// Task routes
 app.post('/tasks', (req, res) => {
   const { title, description, firstName, lastName, email, phone, date } = req.body;
 
@@ -123,21 +137,8 @@ app.delete('/tasks/:id', (req, res) => {
   res.status(204).send();
 });
 
-// AdminJS setup
-(async () => {
-  const AdminJS = (await import('adminjs')).default;
-  const AdminJSExpress = (await import('@adminjs/express')).default;
-
-  const adminJs = new AdminJS({
-    resources: [], // No resources since you are using in-memory data
-    rootPath: '/admin',
-  });
-
-  const adminRouter = AdminJSExpress.buildRouter(adminJs);
-  app.use(adminJs.options.rootPath, adminRouter);
-
-  const PORT = 3001;
-  server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-})();
+const PORT = 3001;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`AdminJS started on http://localhost:${PORT}/admin`);
+});
