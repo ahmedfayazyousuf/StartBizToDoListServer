@@ -9,7 +9,8 @@ app.use(express.json());
 const allowedOrigins = [
   "https://startbiztodolistclient.vercel.app",
   "https://startbiztodolistclient-c3td5r44i-ahmed-fayaz-yousufs-projects.vercel.app",
-  "https://startbiztodolistclient-git-master-ahmed-fayaz-yousufs-projects.vercel.app/"
+  "https://startbiztodolistclient-git-master-ahmed-fayaz-yousufs-projects.vercel.app",
+  "http://localhost:3000"
 ];
 
 const corsOptions = {
@@ -35,6 +36,14 @@ const io = new Server(server, {
     methods: ["GET", "POST", "PATCH", "DELETE"],
     credentials: true
   }
+});
+
+io.on('connection', (socket) => {
+  console.log('New WebSocket connection');
+
+  socket.on('disconnect', () => {
+    console.log('WebSocket disconnected');
+  });
 });
 
 app.post('/tasks', (req, res) => {
