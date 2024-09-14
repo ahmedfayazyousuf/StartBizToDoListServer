@@ -4,16 +4,35 @@ const http = require('http');
 const { Server } = require('socket.io');
 
 const app = express();
-app.use(cors());
 app.use(express.json());
+
+const allowedOrigins = [
+  "https://startbiztodolistclient.vercel.app",
+  "https://startbiztodolistclient-c3td5r44i-ahmed-fayaz-yousufs-projects.vercel.app"
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (allowedOrigins.includes(origin) || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ["GET", "POST", "PATCH", "DELETE"],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 
 let tasks = [];
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://startbiztodolistclient.vercel.app",
-    methods: ["GET", "POST", "PATCH", "DELETE"]
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    credentials: true
   }
 });
 
