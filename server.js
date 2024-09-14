@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 app.use(express.json());
@@ -50,7 +51,7 @@ app.post('/tasks', (req, res) => {
   const { title, description, firstName, lastName, email, phone, date } = req.body;
 
   const newTask = {
-    id: tasks.length + 1,
+    id: uuidv4(),
     title,
     description,
     firstName,
@@ -76,7 +77,7 @@ app.get('/admin/tasks', (req, res) => {
 });
 
 app.patch('/tasks/:id/accept', (req, res) => {
-  const taskId = parseInt(req.params.id);
+  const taskId = req.params.id;
   const task = tasks.find(task => task.id === taskId);
 
   if (task) {
@@ -90,7 +91,7 @@ app.patch('/tasks/:id/accept', (req, res) => {
 });
 
 app.patch('/tasks/:id/reject', (req, res) => {
-  const taskId = parseInt(req.params.id);
+  const taskId = req.params.id;
   const task = tasks.find(task => task.id === taskId);
 
   if (task) {
@@ -101,6 +102,20 @@ app.patch('/tasks/:id/reject', (req, res) => {
     res.status(404).send('Task not found');
   }
 });
+
+app.patch('/tasks/:id', (req, res) => {
+  const taskId = req.params.id;
+  const task = tasks.find(task => task.id === taskId);
+
+  if (task) {
+    Object.assign(task, req.body);
+    io.emit('taskUpdated', task);
+    res.json(task);
+  } else {
+    res.status(404).send('Task not found');
+  }
+});
+
 
 app.delete('/tasks/:id', (req, res) => {
   const taskId = parseInt(req.params.id);
