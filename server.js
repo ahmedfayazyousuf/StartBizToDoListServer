@@ -30,17 +30,14 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// AdminJS setup
 const admin = new AdminJS({
-  // Add your AdminJS configuration here
-  resources: [], // Add your resources here
+  resources: [],
   rootPath: '/admin',
 });
 
 const adminRouter = AdminJSExpress.buildRouter(admin);
 app.use(admin.options.rootPath, adminRouter);
 
-// WebSocket setup
 let tasks = [];
 
 const server = http.createServer(app);
@@ -60,7 +57,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Task routes
 app.post('/tasks', (req, res) => {
   const { title, description, firstName, lastName, email, phone, date } = req.body;
 
