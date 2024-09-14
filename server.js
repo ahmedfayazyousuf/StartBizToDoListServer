@@ -116,15 +116,28 @@ app.patch('/tasks/:id', (req, res) => {
   }
 });
 
-
 app.delete('/tasks/:id', (req, res) => {
-  const taskId = parseInt(req.params.id);
+  const taskId = req.params.id;
   tasks = tasks.filter(task => task.id !== taskId);
   io.emit('taskDeleted', taskId);
   res.status(204).send();
 });
 
-const PORT = 3001;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// AdminJS setup
+(async () => {
+  const AdminJS = (await import('adminjs')).default;
+  const AdminJSExpress = (await import('@adminjs/express')).default;
+
+  const adminJs = new AdminJS({
+    resources: [], // No resources since you are using in-memory data
+    rootPath: '/admin',
+  });
+
+  const adminRouter = AdminJSExpress.buildRouter(adminJs);
+  app.use(adminJs.options.rootPath, adminRouter);
+
+  const PORT = 3001;
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+})();
