@@ -8,7 +8,8 @@ app.use(express.json());
 
 const allowedOrigins = [
   "https://startbiztodolistclient.vercel.app",
-  "https://startbiztodolistclient-c3td5r44i-ahmed-fayaz-yousufs-projects.vercel.app"
+  "https://startbiztodolistclient-c3td5r44i-ahmed-fayaz-yousufs-projects.vercel.app",
+  "https://startbiztodolistclient-git-master-ahmed-fayaz-yousufs-projects.vercel.app/"
 ];
 
 const corsOptions = {
