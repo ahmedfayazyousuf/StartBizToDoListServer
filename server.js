@@ -1,13 +1,12 @@
+import AdminJS from 'adminjs';
+import AdminJSExpress from '@adminjs/express';
 import express from 'express';
 import cors from 'cors';
 import http from 'http';
 import { Server } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
-import { componentLoader, Components } from './admin/components.js';
-import AdminJS from 'adminjs';
-import AdminJSExpress from '@adminjs/express';
 
-const app = express();  
+const app = express();
 app.use(express.json());
 
 const allowedOrigins = [
@@ -26,20 +25,14 @@ const corsOptions = {
     }
   },
   methods: ["GET", "POST", "PATCH", "DELETE"],
-  credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
 };
 
 app.use(cors(corsOptions));
-app.use(express.json());
 
 const admin = new AdminJS({
   resources: [],
   rootPath: '/admin',
-  componentLoader: componentLoader,
-  dashboard: {
-    component: Components.Dashboard,
-  },
 });
 
 const adminRouter = AdminJSExpress.buildRouter(admin);
@@ -55,8 +48,10 @@ const io = new Server(server, {
     credentials: true
   }
 });
+
 io.on('connection', (socket) => {
   console.log('New WebSocket connection');
+
   socket.on('disconnect', () => {
     console.log('WebSocket disconnected');
   });
@@ -64,6 +59,7 @@ io.on('connection', (socket) => {
 
 app.post('/tasks', (req, res) => {
   const { title, description, firstName, lastName, email, phone, date } = req.body;
+
   const newTask = {
     id: uuidv4(),
     title,
@@ -75,6 +71,7 @@ app.post('/tasks', (req, res) => {
     date,
     status: 'pending'
   };
+
   tasks.push(newTask);
   io.emit('taskPending', newTask);  
   res.status(201).json(newTask);
@@ -89,19 +86,10 @@ app.get('/admin/tasks', (req, res) => {
   res.json(tasks);
 });
 
-app.get('/admin/tasks/stats', (req, res) => {
-  const stats = {
-    total: tasks.length,
-    accepted: tasks.filter(task => task.status === 'accepted').length,
-    rejected: tasks.filter(task => task.status === 'rejected').length,
-    pending: tasks.filter(task => task.status === 'pending').length,
-  };
-  res.json(stats);
-});
-
 app.patch('/tasks/:id/accept', (req, res) => {
   const taskId = req.params.id;
   const task = tasks.find(task => task.id === taskId);
+
   if (task) {
     task.status = 'accepted';
     io.emit('taskUpdated', task);
@@ -115,6 +103,7 @@ app.patch('/tasks/:id/accept', (req, res) => {
 app.patch('/tasks/:id/reject', (req, res) => {
   const taskId = req.params.id;
   const task = tasks.find(task => task.id === taskId);
+
   if (task) {
     task.status = 'rejected';
     io.emit('taskUpdated', task);
@@ -127,6 +116,7 @@ app.patch('/tasks/:id/reject', (req, res) => {
 app.patch('/tasks/:id', (req, res) => {
   const taskId = req.params.id;
   const task = tasks.find(task => task.id === taskId);
+
   if (task) {
     Object.assign(task, req.body);
     io.emit('taskUpdated', task);
@@ -143,4 +133,8 @@ app.delete('/tasks/:id', (req, res) => {
   res.status(204).send();
 });
 
-export default app;
+const PORT = 3001;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`AdminJS started on http://localhost:${PORT}/admin`);
+});
