@@ -1,3 +1,4 @@
+import { componentLoader, Components } from './admin/components.js';
 import AdminJS from 'adminjs';
 import AdminJSExpress from '@adminjs/express';
 import express from 'express';
@@ -33,7 +34,12 @@ app.use(cors(corsOptions));
 const admin = new AdminJS({
   resources: [],
   rootPath: '/admin',
+  componentLoader: componentLoader,
+  dashboard: {
+    component: Components.Dashboard,
+  },
 });
+
 
 const adminRouter = AdminJSExpress.buildRouter(admin);
 app.use(admin.options.rootPath, adminRouter);
@@ -84,6 +90,17 @@ app.get('/tasks', (req, res) => {
 
 app.get('/admin/tasks', (req, res) => {
   res.json(tasks);
+});
+
+
+app.get('/admin/tasks/stats', (req, res) => {
+  const stats = {
+    total: tasks.length,
+    accepted: tasks.filter(task => task.status === 'accepted').length,
+    rejected: tasks.filter(task => task.status === 'rejected').length,
+    pending: tasks.filter(task => task.status === 'pending').length,
+  };
+  res.json(stats);
 });
 
 app.patch('/tasks/:id/accept', (req, res) => {
