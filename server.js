@@ -10,7 +10,6 @@ import AdminJSExpress from '@adminjs/express';
 const app = express();  
 app.use(express.json());
 
-// Define CORS options
 const allowedOrigins = [
   "https://startbiztodolistclient.vercel.app",
   "https://startbiztodolistclient-c3td5r44i-ahmed-fayaz-yousufs-projects.vercel.app",
@@ -31,11 +30,9 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-// Apply CORS middleware
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// AdminJS setup
 const admin = new AdminJS({
   resources: [],
   rootPath: '/admin',
@@ -44,12 +41,12 @@ const admin = new AdminJS({
     component: Components.Dashboard,
   },
 });
+
 const adminRouter = AdminJSExpress.buildRouter(admin);
 app.use(admin.options.rootPath, adminRouter);
 
 let tasks = [];
 
-// Socket.io setup
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -65,7 +62,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Define API routes
 app.post('/tasks', (req, res) => {
   const { title, description, firstName, lastName, email, phone, date } = req.body;
   const newTask = {
@@ -147,5 +143,4 @@ app.delete('/tasks/:id', (req, res) => {
   res.status(204).send();
 });
 
-// Export handler for Vercel
 export default app;
