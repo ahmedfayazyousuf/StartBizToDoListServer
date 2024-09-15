@@ -26,17 +26,19 @@ const corsOptions = {
     }
   },
   methods: ["GET", "POST", "PATCH", "DELETE"],
-  credentials: true
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
+
 
 app.use(cors(corsOptions));
 
 const admin = new AdminJS({
-  resources: [], // Add your resources (models) here
+  resources: [],
   rootPath: '/admin',
   componentLoader: componentLoader,
   dashboard: {
-    component: Components.Dashboard, // Ensure this matches the export from components.js
+    component: Components.Dashboard,
   },
 });
 
