@@ -5,8 +5,9 @@ import cors from 'cors';
 import http from 'http';
 import { Server } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
+import { componentLoader, Components } from './admin/components.js';
 
-const app = express();
+const app = express();  
 app.use(express.json());
 
 const allowedOrigins = [
@@ -31,8 +32,12 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 const admin = new AdminJS({
-  resources: [],
+  resources: [], // Add your resources (models) here
   rootPath: '/admin',
+  componentLoader: componentLoader,
+  dashboard: {
+    component: Components.Dashboard, // Ensure this matches the export from components.js
+  },
 });
 
 const adminRouter = AdminJSExpress.buildRouter(admin);
@@ -57,6 +62,7 @@ io.on('connection', (socket) => {
   });
 });
 
+
 app.post('/tasks', (req, res) => {
   const { title, description, firstName, lastName, email, phone, date } = req.body;
 
@@ -77,6 +83,7 @@ app.post('/tasks', (req, res) => {
   res.status(201).json(newTask);
 });
 
+
 app.get('/tasks', (req, res) => {
   const acceptedTasks = tasks.filter(task => task.status === 'accepted');
   res.json(acceptedTasks);
@@ -84,6 +91,16 @@ app.get('/tasks', (req, res) => {
 
 app.get('/admin/tasks', (req, res) => {
   res.json(tasks);
+});
+
+app.get('/admin/tasks/stats', (req, res) => {
+  const stats = {
+    total: tasks.length,
+    accepted: tasks.filter(task => task.status === 'accepted').length,
+    rejected: tasks.filter(task => task.status === 'rejected').length,
+    pending: tasks.filter(task => task.status === 'pending').length,
+  };
+  res.json(stats);
 });
 
 app.patch('/tasks/:id/accept', (req, res) => {
