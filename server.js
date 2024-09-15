@@ -1,14 +1,16 @@
-import AdminJS from 'adminjs';
-import AdminJSExpress from '@adminjs/express';
 import express from 'express';
 import cors from 'cors';
 import http from 'http';
 import { Server } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 import { componentLoader, Components } from './admin/components.js';
+import AdminJS from 'adminjs';
+import AdminJSExpress from '@adminjs/express';
 
 const app = express();  
+app.use(express.json());
 
+// Define CORS options
 const allowedOrigins = [
   "https://startbiztodolistclient.vercel.app",
   "https://startbiztodolistclient-c3td5r44i-ahmed-fayaz-yousufs-projects.vercel.app",
@@ -29,9 +31,11 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
+// Apply CORS middleware
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// AdminJS setup
 const admin = new AdminJS({
   resources: [],
   rootPath: '/admin',
@@ -40,10 +44,12 @@ const admin = new AdminJS({
     component: Components.Dashboard,
   },
 });
-
 const adminRouter = AdminJSExpress.buildRouter(admin);
 app.use(admin.options.rootPath, adminRouter);
 
+let tasks = [];
+
+// Socket.io setup
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -52,21 +58,16 @@ const io = new Server(server, {
     credentials: true
   }
 });
-
 io.on('connection', (socket) => {
   console.log('New WebSocket connection');
-
   socket.on('disconnect', () => {
     console.log('WebSocket disconnected');
   });
 });
 
-let tasks = [];
-
-
+// Define API routes
 app.post('/tasks', (req, res) => {
   const { title, description, firstName, lastName, email, phone, date } = req.body;
-
   const newTask = {
     id: uuidv4(),
     title,
@@ -78,7 +79,6 @@ app.post('/tasks', (req, res) => {
     date,
     status: 'pending'
   };
-
   tasks.push(newTask);
   io.emit('taskPending', newTask);  
   res.status(201).json(newTask);
@@ -106,7 +106,6 @@ app.get('/admin/tasks/stats', (req, res) => {
 app.patch('/tasks/:id/accept', (req, res) => {
   const taskId = req.params.id;
   const task = tasks.find(task => task.id === taskId);
-
   if (task) {
     task.status = 'accepted';
     io.emit('taskUpdated', task);
@@ -120,7 +119,6 @@ app.patch('/tasks/:id/accept', (req, res) => {
 app.patch('/tasks/:id/reject', (req, res) => {
   const taskId = req.params.id;
   const task = tasks.find(task => task.id === taskId);
-
   if (task) {
     task.status = 'rejected';
     io.emit('taskUpdated', task);
@@ -133,7 +131,6 @@ app.patch('/tasks/:id/reject', (req, res) => {
 app.patch('/tasks/:id', (req, res) => {
   const taskId = req.params.id;
   const task = tasks.find(task => task.id === taskId);
-
   if (task) {
     Object.assign(task, req.body);
     io.emit('taskUpdated', task);
@@ -150,8 +147,5 @@ app.delete('/tasks/:id', (req, res) => {
   res.status(204).send();
 });
 
-const PORT = 3001;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`AdminJS started on http://localhost:${PORT}/admin`);
-});
+// Export handler for Vercel
+export default app;
