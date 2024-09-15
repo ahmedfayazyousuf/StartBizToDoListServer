@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { componentLoader, Components } from './admin/components.js';
 
 const app = express();  
-app.use(express.json());
 
 const allowedOrigins = [
   "https://startbiztodolistclient.vercel.app",
@@ -30,8 +29,8 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-
 app.use(cors(corsOptions));
+app.use(express.json());
 
 const admin = new AdminJS({
   resources: [],
@@ -44,8 +43,6 @@ const admin = new AdminJS({
 
 const adminRouter = AdminJSExpress.buildRouter(admin);
 app.use(admin.options.rootPath, adminRouter);
-
-let tasks = [];
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -63,6 +60,8 @@ io.on('connection', (socket) => {
     console.log('WebSocket disconnected');
   });
 });
+
+let tasks = [];
 
 
 app.post('/tasks', (req, res) => {
@@ -84,7 +83,6 @@ app.post('/tasks', (req, res) => {
   io.emit('taskPending', newTask);  
   res.status(201).json(newTask);
 });
-
 
 app.get('/tasks', (req, res) => {
   const acceptedTasks = tasks.filter(task => task.status === 'accepted');
