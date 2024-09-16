@@ -14,7 +14,6 @@
   "dependencies": {
     "@adminjs/express": "^6.1.0",
     "@adminjs/mikroorm": "^4.0.0",
-    "@adminjs/mongoose": "^4.1.0",
     "@types/node": "^22.5.5",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
@@ -27,7 +26,6 @@
     "express-formidable": "^1.2.0",
     "express-session": "^1.18.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.6.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "socket.io": "^4.7.5",

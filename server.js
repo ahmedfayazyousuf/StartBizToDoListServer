@@ -3,8 +3,6 @@ import AdminJS from 'adminjs';
 import AdminJSExpress from '@adminjs/express';
 import express from 'express';
 import cors from 'cors';
-import http from 'http';
-import { Server } from 'socket.io';
 import { v4 as uuidv4 } from 'uuid';
 
 const app = express();
@@ -40,28 +38,10 @@ const admin = new AdminJS({
   },
 });
 
-
 const adminRouter = AdminJSExpress.buildRouter(admin);
 app.use(admin.options.rootPath, adminRouter);
 
 let tasks = [];
-
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "PATCH", "DELETE"],
-    credentials: true
-  }
-});
-
-io.on('connection', (socket) => {
-  console.log('New WebSocket connection');
-
-  socket.on('disconnect', () => {
-    console.log('WebSocket disconnected');
-  });
-});
 
 app.post('/tasks', (req, res) => {
   const { title, description, firstName, lastName, email, phone, date } = req.body;
@@ -79,7 +59,6 @@ app.post('/tasks', (req, res) => {
   };
 
   tasks.push(newTask);
-  io.emit('taskPending', newTask);  
   res.status(201).json(newTask);
 });
 
@@ -91,7 +70,6 @@ app.get('/tasks', (req, res) => {
 app.get('/admin/tasks', (req, res) => {
   res.json(tasks);
 });
-
 
 app.get('/admin/tasks/stats', (req, res) => {
   const stats = {
@@ -109,8 +87,6 @@ app.patch('/tasks/:id/accept', (req, res) => {
 
   if (task) {
     task.status = 'accepted';
-    io.emit('taskUpdated', task);
-    io.emit('taskAccepted', task);
     res.json(task);
   } else {
     res.status(404).send('Task not found');
@@ -123,7 +99,6 @@ app.patch('/tasks/:id/reject', (req, res) => {
 
   if (task) {
     task.status = 'rejected';
-    io.emit('taskUpdated', task);
     res.json(task);
   } else {
     res.status(404).send('Task not found');
@@ -136,7 +111,6 @@ app.patch('/tasks/:id', (req, res) => {
 
   if (task) {
     Object.assign(task, req.body);
-    io.emit('taskUpdated', task);
     res.json(task);
   } else {
     res.status(404).send('Task not found');
@@ -146,12 +120,11 @@ app.patch('/tasks/:id', (req, res) => {
 app.delete('/tasks/:id', (req, res) => {
   const taskId = req.params.id;
   tasks = tasks.filter(task => task.id !== taskId);
-  io.emit('taskDeleted', taskId);
   res.status(204).send();
 });
 
 const PORT = 3001;
-server.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`AdminJS started on http://localhost:${PORT}/admin`);
 });
