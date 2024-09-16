@@ -1,6 +1,6 @@
-import { componentLoader, Components } from './admin/components.js';
-import AdminJS from 'adminjs';
-import AdminJSExpress from '@adminjs/express';
+// import { componentLoader, Components } from './admin/components.js';
+// import AdminJS from 'adminjs';
+// import AdminJSExpress from '@adminjs/express';
 import express from 'express';
 import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
@@ -29,17 +29,17 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-const admin = new AdminJS({
-  resources: [],
-  rootPath: '/admin',
-  componentLoader: componentLoader,
-  dashboard: {
-    component: Components.Dashboard,
-  },
-});
+// const admin = new AdminJS({
+//   resources: [],
+//   rootPath: '/admin',
+//   componentLoader: componentLoader,
+//   dashboard: {
+//     component: Components.Dashboard,
+//   },
+// });
 
-const adminRouter = AdminJSExpress.buildRouter(admin);
-app.use(admin.options.rootPath, adminRouter);
+// const adminRouter = AdminJSExpress.buildRouter(admin);
+// app.use(admin.options.rootPath, adminRouter);
 
 let tasks = [];
 
@@ -123,5 +123,8 @@ app.delete('/tasks/:id', (req, res) => {
   res.status(204).send();
 });
 
-// Export the app (without calling `app.listen()`)
-export default app;
+const PORT = 3001;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  // console.log(`AdminJS started on http://localhost:${PORT}/admin`);
+});
